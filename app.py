@@ -10,13 +10,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(app.root_pa
 db = SQLAlchemy(app)  # 初始化扩展，传入程序实例 app
 
 
-@app.route('/')
-def index():
-    user = User.query.first()
-    movies = Movie.query.all()
-    return render_template('index.html', user=user, movies=movies)
-
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # 主键
     name = db.Column(db.String(20))  # 名字
@@ -66,3 +59,22 @@ def forge():
 
     db.session.commit()
     click.echo('Done.')
+
+
+# 注册一个模板上下文处理函数
+@app.context_processor
+def inject_user():  # 函数名可以随意修改
+    user = User.query.first()
+    return dict(user=user)  # 需要返回字典，等同于 return {'user': user}
+
+
+# 注册一个错误处理函数
+@app.errorhandler(404)
+def page_nut_found(e):
+    return render_template('404.html'), 404
+
+
+@app.route('/')
+def index():
+    movies = Movie.query.all()
+    return render_template('index.html', movies=movies)
